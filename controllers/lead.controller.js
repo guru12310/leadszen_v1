@@ -88,15 +88,28 @@ exports.addManualLead = async (req, res) => {
     const clientId = req.user.id;
     const { name, phone, location } = req.body;
 
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone is required"
+      });
+    }
+
     await db.query(
       `INSERT INTO leads(name, phone, location, client_id, source)
        VALUES($1,$2,$3,$4,'MANUAL')`,
       [name, phone, location, clientId]
     );
 
-    res.json({ success: true, message: "Manual lead added" });
+    res.json({
+      success: true,
+      message: "Manual lead added"
+    });
 
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
