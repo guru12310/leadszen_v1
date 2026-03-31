@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
   try {
+    console.log("-----inside middleware========")
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -20,7 +21,7 @@ module.exports = (req, res, next) => {
 
     next();
   } catch (err) {
-    return res.status(401).json({
+        return res.status(401).json({
       success: false,
       message: "Invalid token",
       error: { code: "AUTH_ERROR", details: err.message }

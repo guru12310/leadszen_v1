@@ -3,6 +3,7 @@ const clientService = require('../services/client.service');
 
 exports.captureLead = async (req, res) => {
   try {
+  console.log("------------client api calling---")
     const { clientId } = req.params;
 
     const lead = await leadService.createLead(req.body, clientId);
@@ -32,6 +33,7 @@ exports.captureLead = async (req, res) => {
 
 exports.getLeads = async (req, res) => {
   try {
+    console.log("---------leads-----fetching")
     const leads = await leadService.getLeads(req.query, req.user.id);
 
     return res.status(200).json({
@@ -83,33 +85,4 @@ exports.updateStatus = async (req, res) => {
 };
 
 
-exports.addManualLead = async (req, res) => {
-  try {
-    const clientId = req.user.id;
-    const { name, phone, location } = req.body;
 
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone is required"
-      });
-    }
-
-    await db.query(
-      `INSERT INTO leads(name, phone, location, client_id, source)
-       VALUES($1,$2,$3,$4,'MANUAL')`,
-      [name, phone, location, clientId]
-    );
-
-    res.json({
-      success: true,
-      message: "Manual lead added"
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message
-    });
-  }
-};
