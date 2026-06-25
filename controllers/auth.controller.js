@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, whatsapp_number } = req.body;
+    const { name, email, password, whatsapp_number,business_name } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -17,9 +17,9 @@ exports.register = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     const result = await db.query(
-      `INSERT INTO clients(name, email, password, whatsapp_number)
-       VALUES($1,$2,$3,$4) RETURNING id`,
-      [name, email, hash, whatsapp_number]
+      `INSERT INTO clients(name, email, password, whatsapp_number,business_name)
+       VALUES($1,$2,$3,$4,$5) RETURNING id`,
+      [name, email, hash, whatsapp_number,business_name]
     );
 
     return res.status(201).json({
