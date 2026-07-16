@@ -35,6 +35,7 @@ exports.summary = async (req, res) => {
 
 exports.analytics = async (req, res) => {
   try {
+    console.log("-----analytics--called--------")
     const clientId = req.user.id;
     const { from, to } = req.query;
 
@@ -45,10 +46,9 @@ exports.analytics = async (req, res) => {
         COUNT(*) FILTER (WHERE status='CONVERTED') as converted
        FROM leads
        WHERE client_id=$1
-       AND created_at BETWEEN $2 AND $3
        GROUP BY DATE(created_at)
        ORDER BY date ASC`,
-      [clientId, from, to]
+      [clientId]
     );
 
     res.json({

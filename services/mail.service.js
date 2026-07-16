@@ -87,11 +87,6 @@ async function sendOTPEmail(email, otp) {
       <tr>
         <td align="center">
 
-          <img
-            src="https://leadszen.in/assets/logo.png"
-            width="170"
-          />
-
           <h2 style="color:#0F62FE;margin-top:30px;">
             Verify Your Email
           </h2>

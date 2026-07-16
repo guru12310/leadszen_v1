@@ -156,3 +156,152 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+// const db = require("../config/db");
+// const mailService = require("../services/mail.service");
+
+exports.verifyOtp = async (req, res) => {
+    try {
+      console.log("-----verify otp api call-----")
+        const { client_id, otp } = req.body;
+
+        if (!client_id || !otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Client ID and OTP are required."
+            });
+        }
+
+        const result = await db.query(
+            `SELECT id,name,email,email_otp,otp_expiry,email_verified
+             FROM clients
+             WHERE id=$1`,
+            [client_id]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({
+                success: false,
+                message: "Client not found."
+            });
+        }
+
+        const client = result.rows[0];
+
+        if (client.email_verified) {
+            return res.status(400).json({
+                success: false,
+                message: "Email already verified."
+            });
+        }
+
+        if (client.email_otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP."
+            });
+        }
+
+        if (new Date() > new Date(client.otp_expiry)) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP has expired."
+            });
+        }
+
+        await db.query(
+            `UPDATE clients
+             SET email_verified=true,
+                 email_otp=NULL,
+                 otp_expiry=NULL
+             WHERE id=$1`,
+            [client_id]
+        );
+
+        // await mailService.sendWelcomeEmail(
+        //     client.email,
+        //     client.name
+        // );
+
+        return res.status(200).json({
+            success: true,
+            message: "Email verified successfully."
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "OTP verification failed.",
+            error: err.message
+        });
+    }
+};
+
+exports.resendOtp = async (req, res) => {
+    try {
+
+        const { client_id } = req.body;
+
+        if (!client_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Client ID is required."
+            });
+        }
+
+        const result = await db.query(
+            `SELECT id,name,email,email_verified
+             FROM clients
+             WHERE id=$1`,
+            [client_id]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({
+                success: false,
+                message: "Client not found."
+            });
+        }
+
+        const client = result.rows[0];
+
+        if (client.email_verified) {
+            return res.status(400).json({
+                success: false,
+                message: "Email already verified."
+            });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+        await db.query(
+            `UPDATE clients
+             SET email_otp=$1,
+                 otp_expiry=$2
+             WHERE id=$3`,
+            [otp, otpExpiry, client_id]
+        );
+
+        await sendOTPEmail(
+            client.email,
+            otp
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully."
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to resend OTP.",
+            error: err.message
+        });
+
+    }
+};
