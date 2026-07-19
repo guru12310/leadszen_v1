@@ -36,16 +36,42 @@ const nodemailer = require("nodemailer");
     debug: true
   });
 
+// async function sendMail({ to, subject, html }) {
+//     try {
+
+//       transporter.verify(function (err, success) {
+//         if (err) {
+//           console.log(err);
+//         } else {
+//           console.log("SMTP Connected");
+//         }
+//       });
+//         const info = await transporter.sendMail({
+//             from: `"LeadsZen Support" <${process.env.SMTP_USER}>`,
+//             to,
+//             subject,
+//             html,
+//         });
+
+//         console.log("Email Sent:", info.messageId);
+
+//         return {
+//             success: true,
+//             messageId: info.messageId,
+//         };
+//     } catch (err) {
+//         console.error("Mail Error:", err);
+
+//         return {
+//             success: false,
+//             error: err.message,
+//         };
+//     }
+// }
+
 async function sendMail({ to, subject, html }) {
     try {
 
-      transporter.verify(function (err, success) {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log("SMTP Connected");
-        }
-      });
         const info = await transporter.sendMail({
             from: `"LeadsZen Support" <${process.env.SMTP_USER}>`,
             to,
@@ -53,21 +79,45 @@ async function sendMail({ to, subject, html }) {
             html,
         });
 
-        console.log("Email Sent:", info.messageId);
+        console.log("✅ Email Sent Successfully");
+        console.log("Message ID:", info.messageId);
 
         return {
             success: true,
             messageId: info.messageId,
         };
+
     } catch (err) {
-        console.error("Mail Error:", err);
+
+        console.error("❌ Failed to send email");
+        console.error("Code:", err.code);
+        console.error("Command:", err.command);
+        console.error("Message:", err.message);
+        console.error(err);
 
         return {
             success: false,
             error: err.message,
         };
+
     }
 }
+
+
+
+(async () => {
+    try {
+
+        await transporter.verify();
+        console.log("✅ SMTP Connected");
+
+    } catch (err) {
+
+        console.error("❌ SMTP Connection Failed");
+        console.error(err);
+
+    }
+})();
 
 async function sendOTPEmail(email, otp) {
     const html = `
