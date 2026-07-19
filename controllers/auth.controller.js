@@ -2,7 +2,6 @@ const db = require('../utils/db');
 const bcrypt = require('bcrypt');
 const {sendOTPEmail} = require('../services/mail.service')
 const jwt = require('jsonwebtoken');
-const {test}=require('../services/test')
 
 // exports.register = async (req, res) => {
 //   try {
