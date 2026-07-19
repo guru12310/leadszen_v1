@@ -1,6 +1,6 @@
 // services/mail.service.js
 
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 
 // const transporter = nodemailer.createTransport({
 //     host: process.env.SMTP_HOST,
@@ -24,28 +24,21 @@ const nodemailer = require("nodemailer");
 //   }
 // });
 
-  const transporter = nodemailer.createTransport({
-    host: "smtpout.secureserver.net",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "support@leadszen.in",
-      pass: "Guru@90039"
-    },
-    logger: true,
-    debug: true
-  });
+  // const transporter = nodemailer.createTransport({
+  //   host: "smtpout.secureserver.net",
+  //   port: 465,
+  //   secure: true,
+  //   auth: {
+  //     user: "support@leadszen.in",
+  //     pass: "Guru@90039"
+  //   },
+  //   logger: true,
+  //   debug: true
+  // });
 
 // async function sendMail({ to, subject, html }) {
 //     try {
 
-//       transporter.verify(function (err, success) {
-//         if (err) {
-//           console.log(err);
-//         } else {
-//           console.log("SMTP Connected");
-//         }
-//       });
 //         const info = await transporter.sendMail({
 //             from: `"LeadsZen Support" <${process.env.SMTP_USER}>`,
 //             to,
@@ -53,71 +46,89 @@ const nodemailer = require("nodemailer");
 //             html,
 //         });
 
-//         console.log("Email Sent:", info.messageId);
+//         console.log("✅ Email Sent Successfully");
+//         console.log("Message ID:", info.messageId);
 
 //         return {
 //             success: true,
 //             messageId: info.messageId,
 //         };
+
 //     } catch (err) {
-//         console.error("Mail Error:", err);
+
+//         console.error("❌ Failed to send email");
+//         console.error("Code:", err.code);
+//         console.error("Command:", err.command);
+//         console.error("Message:", err.message);
+//         console.error(err);
 
 //         return {
 //             success: false,
 //             error: err.message,
 //         };
+
 //     }
 // }
+
+
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendMail({ to, subject, html }) {
     try {
 
-        const info = await transporter.sendMail({
-            from: `"LeadsZen Support" <${process.env.SMTP_USER}>`,
+        const { data, error } = await resend.emails.send({
+            from: "LeadsZen Support <support@leadszen.in>",
             to,
             subject,
-            html,
+            html
         });
 
-        console.log("✅ Email Sent Successfully");
-        console.log("Message ID:", info.messageId);
+        if (error) {
+            console.error("❌ Resend Error:", error);
+
+            return {
+                success: false,
+                error
+            };
+        }
+
+        console.log("✅ Email Sent");
+        console.log("Email ID:", data.id);
 
         return {
             success: true,
-            messageId: info.messageId,
+            id: data.id
         };
 
     } catch (err) {
 
-        console.error("❌ Failed to send email");
-        console.error("Code:", err.code);
-        console.error("Command:", err.command);
-        console.error("Message:", err.message);
-        console.error(err);
+        console.error("❌ Email Error:", err);
 
         return {
             success: false,
-            error: err.message,
+            error: err.message
         };
-
     }
 }
 
+module.exports = sendMail;
 
 
-(async () => {
-    try {
+// (async () => {
+//     try {
 
-        await transporter.verify();
-        console.log("✅ SMTP Connected");
+//         await transporter.verify();
+//         console.log("✅ SMTP Connected");
 
-    } catch (err) {
+//     } catch (err) {
 
-        console.error("❌ SMTP Connection Failed");
-        console.error(err);
+//         console.error("❌ SMTP Connection Failed");
+//         console.error(err);
 
-    }
-})();
+//     }
+// })();
 
 async function sendOTPEmail(email, otp) {
     const html = `
