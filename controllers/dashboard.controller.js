@@ -73,7 +73,7 @@ exports.addManualLead = async (req, res) => {
 
     console.log("--------api called---------")
     const clientId = req.user.id;
-    const { name, phone, location } = req.body;
+    const { name, phone, location,description } = req.body;
 
     console.log("----clientId-----",clientId)
     console.log("---- req.body-----", req.body)
@@ -85,9 +85,9 @@ exports.addManualLead = async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO leads(name, phone, location, client_id, source)
-       VALUES($1,$2,$3,$4,'MANUAL')`,
-      [name, phone, location, clientId]
+      `INSERT INTO leads(name, phone, location,description, client_id, source)
+       VALUES($1,$2,$3,$4,$5, 'MANUAL')`,
+      [name, phone, location, description, clientId]
     );
 
     res.json({

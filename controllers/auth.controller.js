@@ -51,6 +51,44 @@ exports.register = async (req, res) => {
         });
       }
 
+              const hash = await bcrypt.hash(password, 10);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+              const existingUserNotOtpSet = await db.query(
+            "SELECT id FROM clients WHERE email=$1 and email_verified ='false'" ,
+            [email]
+        );
+
+        if (existingUserNotOtpSet.rows.length) {
+            // return res.status(409).json({
+            //     success: false,
+            //     message: "Email already registered"
+            // });
+
+            const otp_update = await db.query(
+                `update clients set email_otp =$1 ,otp_expiry=$2 where   email=$3`
+                [
+
+                otp,
+                otpExpiry,
+                email
+                ]
+            );
+
+        await sendOTPEmail(email, otp);
+
+        return res.status(201).json({
+            success: true,
+            message: "OTP sent successfully.",
+            data: {
+                client_id: existingUserNotOtpSet.rows[0].id,
+                email,
+                otp_required: true
+            }
+        });
+        }
+
         const existingUser = await db.query(
             "SELECT id FROM clients WHERE email=$1",
             [email]
@@ -63,9 +101,9 @@ exports.register = async (req, res) => {
             });
         }
 
-        const hash = await bcrypt.hash(password, 10);
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+        // const hash = await bcrypt.hash(password, 10);
+        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
         const result = await db.query(
             `INSERT INTO clients
@@ -97,6 +135,7 @@ exports.register = async (req, res) => {
         });
 
     } catch (err) {
+        console.log("-----err---",err)
         return res.status(500).json({
             success: false,
             message: "Registration failed",
@@ -114,13 +153,23 @@ exports.login = async (req, res) => {
 
     const user = await db.query(`SELECT * FROM clients WHERE email=$1`, [email]);
 
-    if (!user.rows.length) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-        error: { code: "NOT_FOUND", details: "Invalid email" }
-      });
-    }
+    console.log("-------user------",user)
+    console.log("-------user.rows[0].email_verified------",user.rows)
+    // if (!user.rows.length) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "User not found",
+    //     error: { code: "NOT_FOUND", details: "Invalid email" }
+    //   });
+    // }
+
+      if (user.rows[0].email_verified == false) {
+          return res.status(404).json({
+              success: false,
+              message: "OTP Failed While Register,Re-Register Your Mail",
+              error: { code: "NOT_FOUND", details: "OTP Failed " }
+          });
+      }
 
     const valid = await bcrypt.compare(password, user.rows[0].password);
 

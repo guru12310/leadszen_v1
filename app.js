@@ -11,5 +11,6 @@ app.use('/api/lead', require('./routes/lead.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/client', require('./routes/client.routes'));
 app.use("/api/payment", require("./routes/payment.routes"));
+app.use("/api/deals", require("./routes/deal.router"));
 
 app.listen(3000, () => console.log('Server running Leadszen'));
